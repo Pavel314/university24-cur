@@ -40,6 +40,9 @@
 #include <string_view>
 #include "utils.hpp"
 
+//Лабораторная работа 8. Задачи сжатия и кодирования информации. 
+//Написать программу, используя алгоритм сжатия Хаффмана, для кодирования своих фамилии и имени. 
+
 namespace outsys {
 	using pretty_tree::ansi_color;
 	using pretty_tree::ansi_colors;

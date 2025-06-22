@@ -166,6 +166,7 @@ namespace shell_sorts {
 	static_assert(std::ranges::bidirectional_range<decltype(ciura01_225{}()) > );
 	static_assert(eql2<ciura01_225>(1149241, { 510774, 227011, 100894, 44842, 19930, 8858, 3937, 1750, 701, 301, 132, 57, 23, 10, 4, 1 }));
 
+	using knuth73 = decltype([](size_t n) {return subrange(mulplusone_iterator<3>{}, std::unreachable_sentinel) | tail<std::less_equal<>>(n * std_ext::up_ratio<1,3>);});
 
 	template<class S>
 	auto cache(size_t n) {
@@ -438,7 +439,83 @@ bool test() {
 	return true;
 }
 
-int main() {
+struct merge_sort_fn {
+
+	template <typename LeftIt, typename RightIt, typename BufferIt>
+	void merge(LeftIt left, LeftIt left_last, RightIt right, RightIt right_last, BufferIt buffer, auto cmp)
+	{
+		for (; left != left_last && right != right_last; ++buffer) {
+			const auto l_val = *left;
+			const auto r_val = *right;
+			if (std::invoke(cmp, r_val, l_val)) {
+				*buffer = std::move(r_val);
+				++right;
+				//if constexpr (count_inversions)
+				//	inversions<true>::count += std::distance(left, left_last);
+			}
+			else {
+				*buffer = std::move(l_val);
+				++left;
+			}
+		}
+		std::copy(left, left_last, buffer);
+		std::copy(right, right_last, buffer);
+	}
+
+	template <typename DataIt, typename BufIt>
+	void merge_step(
+		DataIt data_it, DataIt data_end, 
+		BufIt buf_it, BufIt buf_end,
+		const std::size_t length, auto cmp) // length should be power of two
+	{
+		const std::size_t half_length = length / 2;
+		for (; buf_end - buf_it >= length; buf_it += length, data_it += length) {
+			merge(data_it, data_it + half_length, data_it + half_length, data_it + length, buf_it, cmp);
+		}
+		if (buf_it != buf_end) {
+			buf_it -= length;
+			DataIt merging_it = data_it - length;
+			merge(buf_it, buf_it + length, data_it, data_end, merging_it, cmp);
+			std::copy(merging_it, data_end, buf_it);
+		}
+	}
+
+	template <typename InputIt, class Comp = std::ranges::less>
+	void merge_sort(InputIt first, InputIt last, Comp cmp = {})
+	{
+//		if constexpr (count_inversions)
+//			inversions<true>::count = 0;
+		std::vector<typename std::iterator_traits<InputIt>::value_type> buffer(std::distance(first, last));
+		const std::size_t size = buffer.size();
+		const auto buf_start = buffer.begin();
+		const auto buf_end = buffer.end();
+		std::size_t step = 1;
+
+		while (step * 4 <= size) {
+			merge_step(first, last, buf_start, buf_end, step * 2, std::ref(cmp));
+			merge_step(buf_start, buf_end, first, last, step * 4, std::ref(cmp));
+			step *= 4;
+		}
+		if (step * 2 <= size) {
+			merge_step(first, last, buf_start, buf_end, step * 2, std::ref(cmp));
+			if (step * 2 == size)
+				std::copy(buffer.cbegin(), buffer.cend(), first);
+		}
+	}
+
+};
+
+
+
+using merge = decltype([](std::ranges::random_access_range auto&& rng, auto cmp) {
+	merge_sort_fn{}.merge_sort(std::ranges::begin(rng), std::ranges::end(rng), std::move(cmp));
+});
+
+int main() {;
+
+std::println("{}", shell_sorts::seq<shell_sorts::knuth73>(119));
+
+
 	assert(test());
 	std::println(1+R"(
 Welcome to Sorter 1.0(2024.12.24) by PavelPI.
@@ -453,12 +530,12 @@ In addition, other popular sorting algorithms will be used.
 		constexpr auto shell = [](auto&& user, auto&& seq) {return make_sort(std::forward<decltype(user)>(user), shell_sort, std::forward<decltype(seq)>(seq));};
 
 		using data_t = int;
-		auto& rnd = utils::stable_random();
+		auto& rnd = utils::thread_random();
 		const auto gen = rnd.generator<data_t>();
 
 		sort_tester::tester<printer, std::vector<data_t>> tst{};
 
-		tst.run({ 10000, 100000, 5000000 },
+		tst.run({ 1,10,100,1000,10000, 1000000, 5000000,10000000 },
 			make_providers(
 				make_prov("===Step1. Fill data by random===", providers::just_fill(gen)),
 				make_prov("===Step2. Fill data with sorted array with few permutation===", providers::invert_fill(rnd, gen, 10)),
@@ -466,13 +543,18 @@ In addition, other popular sorting algorithms will be used.
 				make_prov("===Step4. Fill data by few unique===", providers::unique_fill(rnd, 10))
 			),
 			make_sorts(
-				shell("pratt71", seq<pratt71>),
+				//shell("hibard63", seq<hibard63>),
+				//shell("papernov65", seq<papernov65>),
+				//shell("pratt71", seq<pratt71>),
+				//shell("knuth73", seq<knuth73>),
 				shell("sedgewick82", seq<sedgewick82>),
 				shell("sedgewick86", seq<sedgewick86>),
 				shell("tokuda92", seq<tokuda92>),
 				shell("ciura01_225", seq<ciura01_225>),
 				shell("lee21", seq<lee21>),
-				make_sort("std::ranges::sort", std::ranges::sort))
+				make_sort("std::ranges::sort", std::ranges::sort),
+				make_sort("merge sort", merge{})
+			)
 		);
 	}
 	return 0;

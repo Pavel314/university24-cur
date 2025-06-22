@@ -7,6 +7,9 @@
 #include <ranges>
 #include <algorithm>
 
+//Лабораторная работа 4. Программирование алгоритмов на графах
+//Написать программу поиска (в глубину) лексикографически первого пути на графе
+
 using Graph = std::map<std::string, std::set<std::string>>;
 
 void add_edge(Graph& graph, const std::string& u, const std::string& v) {

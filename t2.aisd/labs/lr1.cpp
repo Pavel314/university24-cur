@@ -19,6 +19,9 @@
 #include <string_view>
 #include "utils.hpp"
 
+//Лабораторная работа 1. Структура данных "Куча". Реализация базовых операций и их трудоёмкость.
+//Создать кучу из n элементов. Найти минимальный элемент в куче. Удалить корневой узел в мин-куче.
+
 template<class T, class Container = std::vector<T>, class Comparer = std::less<typename Container::value_type>>
 struct heap {
 	using container_type = Container;
