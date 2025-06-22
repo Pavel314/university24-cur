@@ -8,7 +8,7 @@
 //https://medium.com/@guilhermeprogrammer/c-string-formatting-part-2-4440bb7d04cc
 //https://stackoverflow.com/questions/67716780/is-it-possible-advisable-to-return-a-range
 //https://vittorioromeo.com/index/blog/capturing_perfectly_forwarded_objects_in_lambdas.html
-//https://learn.microsoft.com/en-us/cpp/cpp/constructors-cpp?view=msvc-170#extended_aggregate наследование конструкторов, using
+//https://learn.microsoft.com/en-us/cpp/cpp/constructors-cpp?view=msvc-170#extended_aggregate РЅР°СЃР»РµРґРѕРІР°РЅРёРµ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂРѕРІ, using
 //https://stackoverflow.com/questions/23389676/avoid-copying-string-from-ostringstream
 //https://stackoverflow.com/questions/24879417/avoiding-the-first-newline-in-a-c11-raw-string-literal
 //https://stackoverflow.com/questions/8016880/c-less-operator-overload-which-way-to-use
@@ -40,8 +40,8 @@
 #include <string_view>
 #include "utils.hpp"
 
-//Лабораторная работа 8. Задачи сжатия и кодирования информации. 
-//Написать программу, используя алгоритм сжатия Хаффмана, для кодирования своих фамилии и имени. 
+//Р›Р°Р±РѕСЂР°С‚РѕСЂРЅР°СЏ СЂР°Р±РѕС‚Р° 8. Р—Р°РґР°С‡Рё СЃР¶Р°С‚РёСЏ Рё РєРѕРґРёСЂРѕРІР°РЅРёСЏ РёРЅС„РѕСЂРјР°С†РёРё. 
+//РќР°РїРёСЃР°С‚СЊ РїСЂРѕРіСЂР°РјРјСѓ, РёСЃРїРѕР»СЊР·СѓСЏ Р°Р»РіРѕСЂРёС‚Рј СЃР¶Р°С‚РёСЏ РҐР°С„С„РјР°РЅР°, РґР»СЏ РєРѕРґРёСЂРѕРІР°РЅРёСЏ СЃРІРѕРёС… С„Р°РјРёР»РёРё Рё РёРјРµРЅРё. 
 
 namespace outsys {
 	using pretty_tree::ansi_color;
@@ -51,7 +51,7 @@ namespace outsys {
 namespace huffman {
 	struct code {
 		std::size_t value;
-		unsigned depth;//количество бит отводимых на код
+		unsigned depth;//РєРѕР»РёС‡РµСЃС‚РІРѕ Р±РёС‚ РѕС‚РІРѕРґРёРјС‹С… РЅР° РєРѕРґ
 		outsys::ansi_color color{ outsys::ansi_colors::empty };
 		
 		constexpr void for_each(auto&& func) const {
