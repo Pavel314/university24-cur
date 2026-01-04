@@ -1,0 +1,1 @@
+resource_compiler rc89.ini

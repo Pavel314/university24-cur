@@ -1,0 +1,37 @@
+http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#1nnn
+
+https://austinmorlan.com/posts/chip8_emulator/
+http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
+https://river.codes/emulating-a-computer-part-1/ 
+
+https://chip-8.github.io/links/
+https://www.reddit.com/r/EmuDev/comments/eb2nac/the_chip8_archive_a_collection_of_modern_chip8/
+
+https://github.com/kripod/chip8-roms/blob/master/games/Tetris%20%5BFran%20Dachille%2C%201991%5D.ch8
+
+https://ajor.co.uk/chip8/
+
+https://github.com/Chromatophore/HP48-Superchip
+
+В настоящее время, для эмуляторов CHIP-8/SUPERCHIP рекомендована таргетироваться на совместимость с Octo:
+https://github.com/JohnEarnest/Octo/blob/gh-pages/docs/SuperChip.md 
+
+SCHIP ROMS COLLECTION
+https://www.zophar.net/pdroms/chip8.html
+
+Test suite
+https://www.reddit.com/r/EmuDev/comments/viri5r/i_wrote_a_chip8_test_suite/
+
+https://johnearnest.github.io/chip8Archive/?sort=platform
+
+Подробности о кварках
+https://github.com/Diesel-Net/kiwi-8/issues/9
+https://gist.github.com/tobiasvl/a0e43bdcd64d9ef6be35f5c67fcff0dd
+https://github.com/ESPboy-edu/ESPboy_CHIP8
+
+About Spacefight 2091!
+https://github.com/Chromatophore/HP48-Superchip/issues/2
+https://github.com/0xC0DE6502/CHIP-8-releases/commit/9d3c4682905c5013a33e4b1d9ec35899f9fec012
+
+Коллекция общедоступных алгоритмов шифрования
+https://github.com/B-Con/crypto-algorithms/tree/master

@@ -1,0 +1,25 @@
+: main
+    #hires
+
+    v0 := 5  
+    v1 := 5 
+    v2 := 0  
+		
+    i := bighex v3
+    sprite v0 v1 10
+
+    v0 := 50
+		v3 := 0xA
+		i := bighex v3
+    sprite v0 v1 10
+		
+		vf := 4
+		delay := vf
+		loop
+			scroll-right
+			vf := delay
+			if vf != 0 then
+		again
+
+: halt
+    jump halt

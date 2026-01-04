@@ -1,0 +1,29 @@
+:const BUTTON_2 2
+:const BUTTON_W 5
+:const BUTTON_Q 4
+:const BUTTON_E 6
+:alias player-key   v9
+:alias dx   v2
+:alias dy   v1
+
+: main
+    hires
+    dx := 10
+    dy := 15
+    
+		loop
+		clear
+		v3 := 0xA
+		i := bighex v3
+    sprite dx dy 10
+	
+		v0 := BUTTON_E
+		if v0 key then dx += 1
+		v0 := BUTTON_Q
+		if v0 key then dx -= 1
+		
+		v0 := BUTTON_2
+		if v0 key then dy -= 1
+		v0 := BUTTON_W
+		if v0 key then dy += 1
+		again

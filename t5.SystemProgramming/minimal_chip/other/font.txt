@@ -1,0 +1,34 @@
+: main
+    hires
+
+    v0 := 0     # x
+    v1 := 8     # y
+    v2 := 0     # digit counter (0–9)
+
+    loop
+		 v3 := v2
+		 v3 += 0
+     i := bighex v3   # Fx30 — указатель на hi-res цифру (0–9)
+     sprite v0 v1 10  # 10 строк = hi-res glyph
+
+     v0 += 11         # сдвиг по X (10px glyph + отступ)
+     v2 += 1
+     if v2 < 11 then again
+
+: halt
+    jump halt
+
+
+
+
+
+|.xxxxxxxx.|....xx....|.xxxxxxxx.|.xxxxxxxx.|.xx....xx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|..xxxxxx..|.xxxxxx...|...xxxx...|.xxxxxx...|.xxxxxxxx.|.xxxxxxxx.|
+|.xxxxxxxx.|..xxxx....|.xxxxxxxx.|.xxxxxxxx.|.xx....xx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxx...|.xxxxxxxx.|.xxxxxxx..|.xxxxxxxx.|.xxxxxxxx.|
+|.xx....xx.|..xxxx....|.......xx.|.......xx.|.xx....xx.|.xx.......|.xx.......|.......xx.|.xx....xx.|.xx....xx.|.xx....xx.|.xx....xx.|.xx....xx.|.xx....xx.|.xx.......|.xx.......|
+|.xx....xx.|....xx....|.......xx.|.......xx.|.xx....xx.|.xx.......|.xx.......|.......xx.|.xx....xx.|.xx....xx.|.xx....xx.|.xx....xx.|.xx.......|.xx....xx.|.xx.......|.xx.......|
+|.xx....xx.|....xx....|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|......xx..|.xxxxxxxx.|.xxxxxxxx.|.xx....xx.|.xxxxxx...|.xx.......|.xx....xx.|.xxxxxxxx.|.xxxxxxxx.|
+|.xx....xx.|....xx....|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.....xx...|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxx...|.xx.......|.xx....xx.|.xxxxxxxx.|.xxxxxxxx.|
+|.xx....xx.|....xx....|.xx.......|.......xx.|.......xx.|.......xx.|.xx....xx.|....xx....|.xx....xx.|.......xx.|.xxxxxxxx.|.xx....xx.|.xx.......|.xx....xx.|.xx.......|.xx.......|
+|.xx....xx.|....xx....|.xx.......|.......xx.|.......xx.|.......xx.|.xx....xx.|....xx....|.xx....xx.|.......xx.|.xx....xx.|.xx....xx.|.xx....xx.|.xx....xx.|.xx.......|.xx.......|
+|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.......xx.|.xxxxxxxx.|.xxxxxxxx.|....xx....|.xxxxxxxx.|.xxxxxxxx.|.xx....xx.|.xxxxxx...|.xxxxxxxx.|.xxxxxxx..|.xxxxxxxx.|.xx.......|
+|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.xxxxxxxx.|.......xx.|.xxxxxxxx.|.xxxxxxxx.|....xx....|.xxxxxxxx.|.xxxxxxxx.|.xx....xx.|.xxxxxx...|...xxxx...|.xxxxxx...|.xxxxxxxx.|.xx.......|
