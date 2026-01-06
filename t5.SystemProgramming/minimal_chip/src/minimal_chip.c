@@ -38,7 +38,7 @@ static const SDL_Scancode chip_keymapper[] = {
 };
 
 
-static const int app_toolbox_h = 35;
+static const float app_toolbox_h = 35.0f;
 static inline const chip_rom* app_get_default_rom() {
     //Note. The main problem with using the default rom is that it requires the appropriate features from the chip interpreter
     //for starsky2091 is hires
@@ -101,18 +101,18 @@ static void app_set_font(app_state* st, float font_scale) {
     nk_style_set_font(st->nk_ctx, &font->handle);
 }
 
-static void app_on_scale_changed(app_state* st) {
+static void app_on_resize(app_state* st) {
+    SDL_Rect rect;
+    SDL_GetRenderViewport(st->renderer, &rect);
+    monodisplay_render_set_bounds(&st->chip_display, 0.0f, app_toolbox_h, rect.w, rect.h - app_toolbox_h);
+}
+
+static void app_on_scale_size_changed(app_state* st) {
     float scale = SDL_GetWindowDisplayScale(st->window);
     assert(scale > 0);
     SDL_SetRenderScale(st->renderer, scale, scale);
     app_set_font(st, scale);
-}
-
-static void app_on_resize(app_state* st) {
-    int w, h;
-    SDL_GetCurrentRenderOutputSize(st->renderer, &w, &h);
-    monodisplay_render_set_bounds(&st->chip_display, 0, app_toolbox_h, w, h-app_toolbox_h);
-
+    app_on_resize(st);
 }
 
 static void app_set_monodisplay_rotation(app_state* st, monodisplay_rotation_kind rotation) {
@@ -124,23 +124,29 @@ static void app_set_monodisplay_style(app_state* st, monodisplay_style_kind styl
     monodisplay_renderer_set_style(&st->chip_display, &monodisplay_styles[style]);
 }
 
-static void app_set_rom(app_state* st, const chip_rom* rom, const chip_config* cfg, const char* desc, int hz) {
+static void app_set_rom(app_state* st, const chip_rom* rom, const chip_config* cfg, const char* desc, double hz, const char* rom_name) {
     if (!rom) rom = app_get_default_rom();
     if (!cfg) cfg = &chip2_presets[CHIP_PRESET_OCTO_CHIP];
     if (!desc) desc = "";
     if (hz < 0) hz = chip_standard_freques[CHIP_DEVICE_VM];
+    if (!rom_name) rom_name = "";
     chip_rom_free(&st->chip_rom);
     st->chip_rom = *rom;
     st->chip_time.freq[CHIP_DEVICE_VM] = hz;
     ui_info_window_set_text(&st->ui_rom_info, desc);
     if (desc && *desc) st->ui_rom_info.shown = true;
     chip8_reinit(&st->chip, cfg, &st->chip_rom, true);
-    app_set_monodisplay_rotation(st, MONODIDPLAY_ROTATION_0);
+    app_set_monodisplay_rotation(st, MONODISPLAY_ROTATION_0);
+
+    char title[128];
+    utils_strcat_many(title, sizeof(title), " - ", APP_NAME, rom_name, NULL);
+    SDL_SetWindowTitle(st->window, title);
 }
 
 static void app_on_open_rom(app_state* st, const char* path) {
     chip_rom newrom;
     if (chip_rom_from_file(&newrom, path, CHIP8_MAX_ROM_SIZE)) {
+        const char* filename = utils_filepath_name(path);
         const char* sha1hex = utils_sha1_hex(newrom.mem, newrom.size);
         const romdb_entry* dbentry = romdb_get(sha1hex);
         if (dbentry) {
@@ -156,15 +162,15 @@ static void app_on_open_rom(app_state* st, const char* path) {
             const char spacefight2091sha1[] = "a05844df3305738e4030512f0063db2fe4f3bd11";
             const bool isspacefight2091 = strcmp(spacefight2091sha1, sha1hex) == 0;
             chip_preset_kind preset = isspacefight2091? CHIP_PRESET_SPACEFIGHT2091_CHIP: preset_mapper[dbentry->platform];
-            app_set_rom(st, &newrom, &chip2_presets[preset], dbentry->desc, dbentry->tickrate * 60);
+            app_set_rom(st, &newrom, &chip2_presets[preset], dbentry->desc, dbentry->tickrate * 60.0, filename);
         }
         else {
-            app_set_rom(st, &newrom, NULL, "", -1);
+            app_set_rom(st, &newrom, NULL, "", -1.0, filename);
         }
     }
     else {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Unable to load selected rom. The file may be too large", st->window);
-        app_set_rom(st, NULL, NULL, "", -1);
+        app_set_rom(st, NULL, NULL, "", -1.0, NULL);
     }
 }
 
@@ -234,7 +240,7 @@ static void app_on_keydown(app_state* st, SDL_Scancode key, bool isdown) {
 
 static inline SDL_AppResult app_init_sdl3(app_state* st) {
     //TODO init joustick for android?
-    if (!SDL_CreateWindowAndRenderer(APP_NAME, 800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY, &st->window, &st->renderer))
+    if (!SDL_CreateWindowAndRenderer(APP_NAME, 800, 600, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY, &st->window, &st->renderer))
         return report(SDL_APP_FAILURE, "%s", SDL_GetError());
 
     UNUSED_192F(SDL_SetWindowMinimumSize(st->window, 200, 200));
@@ -330,7 +336,7 @@ static inline SDL_AppResult app_init_chip(app_state* st) {
     st->chip_display_style = MONODISPLAY_STYLE_BLACKWHITE;
     monodisplay_renderer_init(&st->chip_display, monodisplay_styles[st->chip_display_style], (SDL_FRect) { 0, 0, 512, 512 }, CHIP8_DISPLAY_WIDTH, CHIP8_DISPLAY_HEIGHT);
     
-    app_set_rom(st, NULL, NULL, "", -1);
+    app_set_rom(st, NULL, NULL, "", -1.0, NULL);
     app_set_monodisplay_style(st, MONODISPLAY_STYLE_BLACKWHITE);
     return SDL_APP_CONTINUE;
 }
@@ -353,13 +359,12 @@ static SDL_AppResult app_init(app_state* st) {
     st->last_time = SDL_GetPerformanceCounter();
     st->ui_about_shown = false;
     st->fps_counter = fps_counter_init();
-    app_on_resize(st);
-    app_on_scale_changed(st);
+    app_on_scale_size_changed(st);
     return SDL_APP_CONTINUE;
 }
 static SDL_AppResult app_event(app_state* st, SDL_Event* event) {
     switch (event->type) {
-    case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED: app_on_scale_changed(st); return SDL_APP_CONTINUE;
+    case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED: app_on_scale_size_changed(st); return SDL_APP_CONTINUE;
     case SDL_EVENT_WINDOW_RESIZED: app_on_resize(st); return SDL_APP_CONTINUE;
     case SDL_EVENT_QUIT: return SDL_APP_SUCCESS;
     case SDL_EVENT_KEY_UP: 
@@ -367,7 +372,7 @@ static SDL_AppResult app_event(app_state* st, SDL_Event* event) {
         app_on_keydown(st, event->key.scancode, event->type == SDL_EVENT_KEY_DOWN);
         break;
     }
-
+    SDL_ConvertEventToRenderCoordinates(st->renderer, event);
     nk_sdl_handle_event(st->nk_ctx, event);
     return SDL_APP_CONTINUE;
 }
@@ -386,33 +391,35 @@ static void app_on_chipvm_updated(app_state* st) {
 static int app_format_stats(app_state* st, char* buf, int len) {
     char fps[64];
     fps_counter_format(&st->fps_counter, fps, sizeof(fps));
-    int w, h;
-    SDL_GetCurrentRenderOutputSize(st->renderer, &w, &h);
+    float dpi = SDL_GetWindowDisplayScale(st->window);
     return snprintf(buf, len,
         "%s %s\n"
         "Build: %s %.5s\n"
         "Created by %s\n"
         "%s\n"
-        "Display: %dx%d\n"
+        "DPI: %.4f\n"
         "Controls: 1-4, Q-R, A-F, Z-V",
         APP_NAME, APP_VERSION_STRING_192F,
         APP_BUILD_DATE, APP_BUILD_TIME,
         APP_AUTHER,
         fps,
-        w, h);
+        dpi);
 }
 
 static void app_frame_ui(app_state* st) {
     struct nk_context* ctx = st->nk_ctx;
 
-    int w, h;
-    SDL_GetCurrentRenderOutputSize(st->renderer, &w, &h);
+    //int w, h;
+    //SDL_GetCurrentRenderOutputSize(st->renderer, &w, &h);
+    SDL_Rect vrect;
+    SDL_GetRenderViewport(st->renderer, &vrect);
+    int w = vrect.w;//, h = vrect.h;
 
     if (st->ui_about_shown) {
         char about_buf[1024];
         app_format_stats(st, about_buf, sizeof(about_buf));
-        const int about_width = 200;
-        ui_utils_text_place(ctx, "About", nk_rect(w - about_width, app_toolbox_h, about_width, 0), true, about_buf, -1);
+        const float about_width = 200.0f;
+        ui_utils_text_place(ctx, "About", nk_rect(w - about_width, app_toolbox_h, about_width, 0.0f), true, about_buf, -1);
     }
     if (nk_begin(ctx, "Toolbox", nk_rect(0, 0, w, app_toolbox_h), NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BORDER))
     {
@@ -448,7 +455,7 @@ static void app_frame_ui(app_state* st) {
 
         nk_layout_row_push(ctx, btn_w);
         if (nk_button_image(ctx, st->icons[RES_ICON_ROTATE])) {
-            app_set_monodisplay_rotation(st, (st->chip_display.rotation + 1) % MONODIDPLAY_ROTATION_MAX);
+            app_set_monodisplay_rotation(st, (st->chip_display.rotation + 1) % MONODISPLAY_ROTATION_MAX);
         }
 
         nk_layout_row_push(ctx, gap);
@@ -469,12 +476,12 @@ static void app_frame_ui(app_state* st) {
         nk_property_int(ctx, "CPU Hz:", 100, &freq, 3000, 10, 5);
         st->chip_time.freq[CHIP_DEVICE_VM] = freq;
 
-        
         nk_layout_row_push(ctx, bigw);
         static const char* monodisplay_style_mapper[] = {
             [MONODISPLAY_STYLE_BLACKWHITE] = "Black and White",
             [MONODISPLAY_STYLE_REDNEON] = "Red Neon",
             [MONODISPLAY_STYLE_SIEMENS_ORRANGE] = "Orange Digital",
+            [MONODISPLAY_STYLE_NOKIA_GREEN] = "Green Digital",
             [MONODISPLAY_STYLE_OLDMONITOR]="Old Monitor"};
 
         int monodisplay_style_ind = ui_utils_nk_combo(ctx, monodisplay_style_mapper, COUNTOF_192F(monodisplay_style_mapper), st->chip_display_style, COUNTOF_192F(monodisplay_style_mapper));
@@ -496,7 +503,8 @@ static SDL_AppResult app_frame(app_state* st) {
     st->last_time = time_u64;
     fps_counter_update(&st->fps_counter, delta);
     nk_input_end(st->nk_ctx);
-    static const void (*update_devices[CHIP_DEVICE_MAX])(chip8*) = {
+    typedef void (*chip_update_device_fn)(chip8*);
+    static const chip_update_device_fn update_devices[] = {
         [CHIP_DEVICE_VM] = chip8_step,
         [CHIP_DEVICE_VMTIMER] = chip8_timer_tick,
     };

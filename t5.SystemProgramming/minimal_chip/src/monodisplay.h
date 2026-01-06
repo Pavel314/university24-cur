@@ -34,6 +34,7 @@ typedef enum {
     MONODISPLAY_STYLE_BLACKWHITE,
     MONODISPLAY_STYLE_REDNEON,
     MONODISPLAY_STYLE_SIEMENS_ORRANGE,
+    MONODISPLAY_STYLE_NOKIA_GREEN,
     MONODISPLAY_STYLE_OLDMONITOR,
     MONODISPLAY_STYLE_MAX,
 } monodisplay_style_kind;
@@ -70,6 +71,17 @@ static const monodisplay_style monodisplay_styles[MONODISPLAY_STYLE_MAX] = {
         .halo = {0},
         .padcell = {-2.0f, -2.0f, 0.0f, 0.0f}
     },
+    [MONODISPLAY_STYLE_NOKIA_GREEN] = {
+        .bg = { 168, 200, 108, 255 },
+        .fg = {  28,  48,  18, 255 },
+        .border = {  70,  85,  55, 255 },
+        .gap = 0.0f,
+        .ghosting = 0.3f,
+        .vignette = 0.05f,
+        .noise = { 1.0f, 1.00f },
+        .halo = {0},
+        .padcell = { -2.0f, -2.0f, 0.0f, 0.0f },
+    },
     [MONODISPLAY_STYLE_OLDMONITOR] = {
         .bg = { 255,255,255, 255 },
         .fg = { 0,0,0, 255 },
@@ -89,11 +101,11 @@ typedef struct {
 } monodisplay__buffer;
 
 typedef enum {
-    MONODIDPLAY_ROTATION_0,
-    MONODIDPLAY_ROTATION_90,
-    MONODIDPLAY_ROTATION_180,
-    MONODIDPLAY_ROTATION_270,
-    MONODIDPLAY_ROTATION_MAX,
+    MONODISPLAY_ROTATION_0,
+    MONODISPLAY_ROTATION_90,
+    MONODISPLAY_ROTATION_180,
+    MONODISPLAY_ROTATION_270,
+    MONODISPLAY_ROTATION_MAX,
 } monodisplay_rotation_kind;
 
 typedef struct {
@@ -139,10 +151,10 @@ static void monodisplay_renderer_set_style(monodisplay_renderer* st, const monod
 }
 
 static void monodisplay_renderer_init(monodisplay_renderer* st, monodisplay_style style, SDL_FRect bounds, int cellsx, int cellsy) {
-    monodisplay_renderer ret = { .style = {0}, .bounds = {0.0f, 0.0f, 0.0f, 0.0f}, MONODIDPLAY_ROTATION_0, .cellsx = 0, .cellsy = 0};
+    monodisplay_renderer ret = { .style = {0}, .bounds = {0.0f, 0.0f, 0.0f, 0.0f}, MONODISPLAY_ROTATION_0, .cellsx = 0, .cellsy = 0};
     monodisplay_renderer_set_cells(&ret, cellsx, cellsy);
     monodisplay_render_set_bounds(&ret, bounds.x, bounds.y, bounds.w, bounds.h);
-    monodisplay_render_set_rotation(&ret, MONODIDPLAY_ROTATION_0);
+    monodisplay_render_set_rotation(&ret, MONODISPLAY_ROTATION_0);
     monodisplay_renderer_set_style(&ret, &style);
     *st = ret;
 }
@@ -157,10 +169,10 @@ static inline int monodisplay__xy2ind(const monodisplay_renderer* st, int x, int
     const int w = (st->rotation & 1) ? st->cellsy : st->cellsx;
     const int h = (st->rotation & 1) ? st->cellsx : st->cellsy;
     switch (st->rotation) {
-        case MONODIDPLAY_ROTATION_0: return utils_xy2ind(x, y, stride);
-        case MONODIDPLAY_ROTATION_90: return utils_xy2ind(y, h - 1 - x, stride);
-        case MONODIDPLAY_ROTATION_180: return utils_xy2ind(w - 1 - x, h - 1 - y, stride);
-        case MONODIDPLAY_ROTATION_270: return utils_xy2ind(w - 1 - y, x, stride);
+        case MONODISPLAY_ROTATION_0: return utils_xy2ind(x, y, stride);
+        case MONODISPLAY_ROTATION_90: return utils_xy2ind(y, h - 1 - x, stride);
+        case MONODISPLAY_ROTATION_180: return utils_xy2ind(w - 1 - x, h - 1 - y, stride);
+        case MONODISPLAY_ROTATION_270: return utils_xy2ind(w - 1 - y, x, stride);
         default: halt_assert(0, "Unknown branch in monodisplay rotation");
     }
     return 0;
@@ -221,6 +233,7 @@ static SDL_FRect monodisplay__get_cell_rect(monodisplay_renderer* st, float cell
     };
 }
 
+//With fullzscreen, this can lead to unwanted stripes at the top and bottom
 //static SDL_FRect monodisplay__get_cell_rect(monodisplay_renderer* st, float cell_w, float cell_h, int cx, int cy) {
 //    const monodisplay_style* style = &st->style;
 //    if (cell_w <= 0.0f) cell_w = (st->bounds.w - (st->cellsx + 1) * style->gap) / st->cellsx;

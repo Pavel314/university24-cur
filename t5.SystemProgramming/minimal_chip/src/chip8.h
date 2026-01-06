@@ -98,28 +98,12 @@ static chip_rom chip_rom_init(unsigned char* mem, size_t size, free_fn free_fn) 
 }
 
 static bool chip_rom_from_file(chip_rom* out, const char* path, size_t size_limit) {
+	size_t size;
 	if (!path) return false;
-	FILE* f = fopen(path, "rb");
-	if (!f) return false;
-	fseek(f, 0, SEEK_END);
-	const long size = ftell(f);
-	if (size <= 0 || (size_limit>0 && size>size_limit)) {
-		fclose(f);
-		return false;
-	}
-	fseek(f, 0, SEEK_SET);
-	unsigned char* buffer = (unsigned char*)malloc(size);
-	if (!buffer) {
-		fclose(f);
-		return false;
-	}
-	size_t read_bytes = fread(buffer, 1, size, f);
-	fclose(f);
-	if (read_bytes != (size_t)size) {
-		free(buffer);
-		return false;
-	}
-	*out = chip_rom_init(buffer, size, free);
+	//We use sdl api to allow the utf8 paths
+	unsigned char* mem = (unsigned char*)utils_sdl_load_file_limit(path, &size, size_limit);
+	if (!mem || size==0u) return false;
+	*out = chip_rom_init(mem, size, SDL_free);
 	return true;
 }
 

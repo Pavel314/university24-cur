@@ -144,11 +144,75 @@ static inline void utils_nk_clip_copy(const struct nk_clipboard* clip, const cha
     if (clip->copy) clip->copy(clip->userdata, text, len);
 }
 
-static inline const void utils_nk_clip_copy_all(const struct nk_clipboard* clip, struct nk_text_edit* edit) {
+static inline void utils_nk_clip_copy_all(const struct nk_clipboard* clip, struct nk_text_edit* edit) {
     struct nk_str* str = &edit->string;
     utils_nk_clip_copy(clip, nk_str_get_const(str), nk_str_len_char(str));
 }
 /*END OF UTILITY API*/
+
+
+static const char* utils_filepath_name(const char* path) {
+    if (!path || !*path) return NULL;
+
+    const char* last_slash = strrchr(path, '/');
+#if defined _WIN32 || defined WIN32 || defined _WIN64
+    const char* last_bslash = strrchr(path, '\\');
+    if (!last_slash || (last_bslash && last_bslash > last_slash)) last_slash = last_bslash;
+#endif
+    const char* name_start = last_slash ? last_slash + 1 : path;
+    if (!name_start || !*name_start) return NULL; //path can not ends with seperator
+    return name_start;
+}
+
+static void utils_strcat_many(char* buf, size_t buf_size, const char* delim, ...) {
+    if (!buf || buf_size == 0) return;
+    if (!delim) delim = "";
+    const size_t delim_len = strlen(delim);
+    size_t copy_cnt = 0;
+    va_list args;
+    va_start(args, delim);
+    for (size_t cap = buf_size - 1u; cap > 0;) {
+        const char* s = va_arg(args, const char*);
+        if (!s) break;
+        if (!*s) continue;
+        if (copy_cnt > 0) {
+            const size_t n = delim_len < cap ? delim_len : cap;
+            memcpy(buf + copy_cnt, delim, n);
+            copy_cnt += n;
+            cap -= n;
+            if (n < delim_len) break;
+        }
+        const size_t len = strlen(s);
+        const size_t n = len < cap ? len : cap;
+        memcpy(buf + copy_cnt, s, n);
+        copy_cnt += n;
+        cap -= n;
+        if (n < len) break;
+    }
+
+    va_end(args);
+    buf[copy_cnt] = '\0';
+}
+
+static void* utils_sdl_load_file_limit(const char* file, size_t* datasize, size_t limit) {
+    if (datasize) *datasize = 0;
+    if (!file) return NULL;
+    SDL_IOStream* io = SDL_IOFromFile(file, "rb");
+    if (!io) return NULL;
+    Sint64 szs64 = SDL_GetIOSize(io);
+    if (szs64 <= 0) { SDL_CloseIO(io); return NULL; } //Zero-length files are prohibited
+    if ((uint64_t)szs64 > (uint64_t)SIZE_MAX) { SDL_CloseIO(io); return NULL; }
+    size_t sz = (size_t)szs64;
+    if (limit > 0 && sz > limit) { SDL_CloseIO(io); return NULL; }
+    uint8_t* buf = (uint8_t*)SDL_malloc(sz + 1);
+    if (!buf) { SDL_CloseIO(io); return NULL; }
+    size_t got = SDL_ReadIO(io, buf, sz);
+    SDL_CloseIO(io);
+    if (got != sz) {SDL_free(buf); return NULL;}
+    buf[sz] = 0;
+    if (datasize) *datasize = (size_t)sz;
+    return buf; // free with SDL_free()
+}
 
 /******************************************
  ____________FPS EMA COUNTER API___________
