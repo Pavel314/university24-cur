@@ -2,6 +2,8 @@
 
 A minimalist **CHIP-8/SCHIP** emulator built with **SDL3** and **Nuklear**.
 
+### [Try it now!](https://Pavel314.github.io/)
+
 ## Features
 
 - **Broad game compatibility** thanks to a flexible core(`src/chip8.h`) and support for (almost) all **quirk sets**.
@@ -47,5 +49,5 @@ They are included for testing/demo purposes only. If you are a rights holder and
 1. `cd university24-cur/t5.SystemProgramming/minimal_chip`
 1. `cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release`
 1. `cmake --build build -j`
-
+1. `./build/minimal_chip`
 ---
