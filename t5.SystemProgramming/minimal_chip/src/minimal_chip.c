@@ -8,6 +8,11 @@
 #include "monodisplay.h"
 #include "ui.h"
 #include "version.h"
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
 /*
 TODO
 1)The romdb (python script) skips entries if the given platform is not supported, 
@@ -17,8 +22,10 @@ Although, some games may be indexed incorrectly. [For example, Sub-Terr8nia, spe
 3)screenRotation field may be readed from romdb[But only Sub-Terr8nia use it]
 4)When window resizing, check and correct the bounds of the ui_rom_info
 5)chip_rom_init(defualt_rom_res->data, defualt_rom_res->size, NULL); -- const correctness
+[Ideas for future improvement]
+1)Saving and loading the VM's state to a file
+2)Combobox for precise platform selection. Since romdb autoconfiguration is not always ideal[5-quirks.ch8 fox example]
 */
-
 
 enum {
     CHIP_DEVICE_VM = 0,
@@ -126,7 +133,7 @@ static void app_set_monodisplay_style(app_state* st, monodisplay_style_kind styl
 
 static void app_set_rom(app_state* st, const chip_rom* rom, const chip_config* cfg, const char* desc, double hz, const char* rom_name) {
     if (!rom) rom = app_get_default_rom();
-    if (!cfg) cfg = &chip2_presets[CHIP_PRESET_OCTO_CHIP];
+    if (!cfg) cfg = &chip_presets[CHIP_PRESET_OCTO_CHIP];
     if (!desc) desc = "";
     if (hz < 0) hz = chip_standard_freques[CHIP_DEVICE_VM];
     if (!rom_name) rom_name = "";
@@ -162,7 +169,7 @@ static void app_on_open_rom(app_state* st, const char* path) {
             const char spacefight2091sha1[] = "a05844df3305738e4030512f0063db2fe4f3bd11";
             const bool isspacefight2091 = strcmp(spacefight2091sha1, sha1hex) == 0;
             chip_preset_kind preset = isspacefight2091? CHIP_PRESET_SPACEFIGHT2091_CHIP: preset_mapper[dbentry->platform];
-            app_set_rom(st, &newrom, &chip2_presets[preset], dbentry->desc, dbentry->tickrate * 60.0, filename);
+            app_set_rom(st, &newrom, &chip_presets[preset], dbentry->desc, dbentry->tickrate * 60.0, filename);
         }
         else {
             app_set_rom(st, &newrom, NULL, "", -1.0, filename);
@@ -186,6 +193,14 @@ static void app_on_open_rom_cb(void* vinfo) {
     free(info);
 }
 
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+void app_on_open_rom_ems(uintptr_t ust, const char* path) {
+    app_state* st = (app_state*)ust;
+    app_on_open_rom(st, path);
+}
+#endif
+
 static void app_showdialog_cb(void* vst, const char* const* filelist, int filter) {
     app_state* st = (app_state*)vst;
     if (filelist && filelist[0]) {
@@ -197,7 +212,29 @@ static void app_showdialog_cb(void* vst, const char* const* filelist, int filter
 }
 
 static void app_showdialog(app_state* st) {
+#ifdef __EMSCRIPTEN__
+    EM_ASM({
+      if (!Module._mc_input) {
+          var i = document.createElement('input');
+          i.type = 'file';
+          i.style.display = 'none';
+          document.body.appendChild(i);
+          i.addEventListener('change', async function() {
+              var f = i.files && i.files[0];
+              if (!f) return;
+              var buf = new Uint8Array(await f.arrayBuffer());
+              Module.FS.writeFile('/upload.ch8', buf);
+              Module.ccall('app_on_open_rom_ems', null, ['number', 'string'], [$0, '/upload.ch8']);
+              i.value = '';
+          });
+          Module._mc_input = i;
+      }
+      Module._mc_input.click();
+    }, (uintptr_t)st);
+
+#else
     SDL_ShowOpenFileDialog(app_showdialog_cb, st, st->window, NULL, 0, NULL, false);
+#endif
 }
 
 
@@ -330,7 +367,7 @@ static inline void app_uninit_nuklear(app_state* st) {
 
 static inline SDL_AppResult app_init_chip(app_state* st) {
     st->chip_rom = *app_get_default_rom();
-    chip8_init(&st->chip, &chip2_presets[CHIP_PRESET_OCTO_CHIP], &st->chip_rom);
+    chip8_init(&st->chip, &chip_presets[CHIP_PRESET_OCTO_CHIP], &st->chip_rom);
 
     clockgen_init(&st->chip_time, chip_standard_freques, CHIP_DEVICE_MAX);
     st->chip_display_style = MONODISPLAY_STYLE_BLACKWHITE;
@@ -398,17 +435,19 @@ static int app_format_stats(app_state* st, char* buf, int len) {
         "Created by %s\n"
         "%s\n"
         "DPI: %.4f\n"
-        "Controls: 1-4, Q-R, A-F, Z-V",
+        "Controls: 1-4, Q-R, A-F, Z-V\n"
+        "DevDate: %s"
+        ,
         APP_NAME, APP_VERSION_STRING_192F,
         APP_BUILD_DATE, APP_BUILD_TIME,
         APP_AUTHER,
         fps,
-        dpi);
+        dpi,
+        APP_DEV_DATE);
 }
 
 static void app_frame_ui(app_state* st) {
     struct nk_context* ctx = st->nk_ctx;
-
     //int w, h;
     //SDL_GetCurrentRenderOutputSize(st->renderer, &w, &h);
     SDL_Rect vrect;

@@ -45,7 +45,7 @@ They are included for testing/demo purposes only. If you are a rights holder and
 
 1. `git clone https://github.com/Pavel314/university24-cur.git`
 1. `cd university24-cur/t5.SystemProgramming/minimal_chip`
-1. `cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Releasee`
+1. `cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release`
 1. `cmake --build build -j`
 
 ---

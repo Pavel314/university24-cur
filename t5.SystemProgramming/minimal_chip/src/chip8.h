@@ -201,7 +201,7 @@ typedef enum {
 } chip_preset_kind;
 
 
-static const chip_config chip2_presets[CHIP_PRESET_MAX] = {
+static const chip_config chip_presets[CHIP_PRESET_MAX] = {
 	[CHIP_PRESET_SCHIP_WRAP] = {
 		.quirks = CHIP_Q__DXYN_SPRITES_WRAP_ON | CHIP_Q__DXYN_ALLOW_DXY0,
 		.features = CHIP_F_SCHIP_1_1,
@@ -448,8 +448,11 @@ static void chip8_get_display_wh(chip8* st, int* w, int* h) {
 
 
 static void chip8__write_fonts(chip8* st, const chip_font_info* lores_font, const chip_font_info* hires_font) {
-	if (lores_font)
-		assert(chip_font_info_export_to_memory(lores_font, st->mem + CHIP8_LOFONT_BASE) == CHIP8_LOFONT_SIZE);
+	if (lores_font) {
+		const size_t written = chip_font_info_export_to_memory(lores_font, st->mem + CHIP8_LOFONT_BASE);
+		//Be careful and don't mix asserts and expression with effects(back-side effects)
+		assert(written == CHIP8_LOFONT_SIZE);
+	}
 	if (hires_font) {
 		assert(CHIP8_HIFONT_BASE >= CHIP8_LOFONT_BASE + CHIP8_LOFONT_SIZE);
 		chip_font_info_export_to_memory(hires_font, st->mem + CHIP8_HIFONT_BASE);
@@ -795,7 +798,7 @@ static void chip8__fxxx(chip8* st, uint16_t code) {
 /*END OF ~CHIP8 INSTUCTIONS SECTION~*/
 
 static inline uint16_t chip8_fetch_opcode(chip8* st, bool advance) {
-	halt_assert(st->pc < CHIP8_MEMORY, "program counter(pc) out of memory size, pc: %d", (int)st->pc);
+	halt_assert(st->pc+1 < CHIP8_MEMORY, "program counter(pc) out of memory size, pc: %d", (int)st->pc);
 	uint16_t opcode = (st->mem[st->pc] << 8) | st->mem[st->pc + 1];
 	if (advance) st->pc += CHIP8_OPCODE_SIZE;
 	return opcode;

@@ -11,10 +11,31 @@ if (NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
 endif()
 
+function(add_sanitizer tgt)
+	if (CMAKE_C_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+		target_compile_options(${tgt} PRIVATE
+			-fsanitize=address,undefined
+			-fno-omit-frame-pointer
+			-g
+		)
+		target_link_options(${tgt} PRIVATE -fsanitize=address,undefined)
+    elseif (CMAKE_C_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+		target_compile_options(${tgt} PRIVATE /fsanitize=address)
+    else()
+		message(WARNING "add_sanitizer(${tgt}): unknown frontend variant: ${CMAKE_C_COMPILER_FRONTEND_VARIANT}")
+	endif()
+endfunction()
+
 project ("minimal_chip" VERSION 1.0 LANGUAGES C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+#set(CMAKE_C_EXTENSIONS ON)
+if(EMSCRIPTEN)
+    set(CMAKE_C_EXTENSIONS ON)
+else()
+    set(CMAKE_C_EXTENSIONS OFF)
+endif()
+
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 
 include(FetchContent)
@@ -39,8 +60,6 @@ set(SOURCES
 
 add_executable (minimal_chip MACOSX_BUNDLE ${SOURCES})
 
-set_target_properties(minimal_chip PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
-target_link_options(minimal_chip PRIVATE "$<$<C_COMPILER_ID:MSVC>:/ENTRY:mainCRTStartup>")
 target_include_directories(minimal_chip PRIVATE ${INCLUDE_DIR})
 target_compile_options(minimal_chip
     PRIVATE
@@ -48,15 +67,31 @@ target_compile_options(minimal_chip
         $<$<C_COMPILER_ID:MSVC>:/W4>
 )
 target_link_libraries(minimal_chip PRIVATE SDL3::SDL3)
-#/fsanitize=address
+
+option(CHIP_ENABLE_SANITIZERS "Build with sanitizers" OFF)
+if(CHIP_ENABLE_SANITIZERS)
+    add_sanitizer(minimal_chip)
+endif()
+
+
+
+set_target_properties(minimal_chip PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
+target_link_options(minimal_chip PRIVATE "$<$<C_COMPILER_ID:MSVC>:/ENTRY:mainCRTStartup>")
+
+
+if (NOT EMSCRIPTEN)
 #only for desktop os(not android)
 add_custom_command(TARGET minimal_chip POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:minimal_chip> $<TARGET_RUNTIME_DLLS:minimal_chip>
     COMMAND_EXPAND_LISTS
 )
-
 add_custom_command(TARGET minimal_chip POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
           "${CMAKE_SOURCE_DIR}/roms"
           "$<TARGET_FILE_DIR:minimal_chip>/roms"
 )
+else()
+  set_target_properties(minimal_chip PROPERTIES OUTPUT_NAME "index")
+  set(CMAKE_EXECUTABLE_SUFFIX ".html")
+  target_link_options(minimal_chip PRIVATE "-sEXPORTED_RUNTIME_METHODS=ccall,FS")
+endif()

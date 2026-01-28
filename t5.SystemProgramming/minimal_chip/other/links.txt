@@ -35,3 +35,5 @@ https://github.com/0xC0DE6502/CHIP-8-releases/commit/9d3c4682905c5013a33e4b1d9ec
 
 Коллекция общедоступных алгоритмов шифрования
 https://github.com/B-Con/crypto-algorithms/tree/master
+
+https://github.com/libsdl-org/SDL/issues/14551

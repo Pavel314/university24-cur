@@ -1,0 +1,21 @@
+:alias x v0
+:alias y v1
+:alias c v2
+
+: main
+    x := 0
+    y := 8
+    c := 0
+
+    loop
+		 v3 := c
+		 v3 += 0
+     i := hex v3
+     sprite x y 5
+
+     x += 6
+     c += 1
+     if c < 11 then again
+
+: halt
+    jump halt

@@ -1,0 +1,15 @@
+
+1)
+***INSTALLATION***
+run MSYS2 CLANG64
+pacman -S mingw-w64-clang-x86_64-emscripten
+source /clang64/etc/profile.d/emscripten.sh
+
+2)
+***Build-release***
+emcmake cmake -S . -B build-ems -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build-ems -j
+
+3)
+***run_server***
+http-server -p 8000
