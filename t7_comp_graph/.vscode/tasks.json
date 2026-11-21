@@ -1,0 +1,228 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "prepare-t7_comp_graph",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task prepare --architecture desktop --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task prepare --architecture desktop --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task prepare --architecture desktop --path \"${workspaceFolder}\""
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "prepare-t7_comp_graph-web",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task prepare --architecture web --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task prepare --architecture web --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task prepare --architecture web --path \"${workspaceFolder}\""
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "Android: List Devices",
+			"type": "shell",
+			"group": "build",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task listdevices --architecture android"
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task listdevices --architecture android"
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task listdevices --architecture android"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "iOS: List Devices",
+			"type": "shell",
+			"group": "build",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task listdevices --architecture ios"
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task listdevices --architecture ios"
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task listdevices --architecture ios"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "macOS: Build App Bundle",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task build --type release --architecture desktop --rid ${input:macOSArchitecture} --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type release --architecture desktop --rid ${input:macOSArchitecture} --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type release --architecture desktop --rid ${input:macOSArchitecture} --path \"${workspaceFolder}\""
+			},
+			"group": "build"
+		},
+		{
+			"label": "Android: Install APK",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task build --type ${input:androidBuildType} --architecture android --install --interactive --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:androidBuildType} --architecture android --install --interactive --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:androidBuildType} --architecture android --install --interactive --path \"${workspaceFolder}\""
+			},
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Android: Install AAB",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task build --type ${input:androidBuildType} --architecture android --subtask aab --install --interactive --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:androidBuildType} --architecture android --subtask aab --install --interactive --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:androidBuildType} --architecture android --subtask aab --install --interactive --path \"${workspaceFolder}\""
+			},
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Android: Build APK",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task build --type ${input:androidBuildType} --architecture android --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:androidBuildType} --architecture android --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:androidBuildType} --architecture android --path \"${workspaceFolder}\""
+			},
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Android: Build AAB",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task build --type ${input:androidBuildType} --architecture android --subtask aab --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:androidBuildType} --architecture android --subtask aab --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:androidBuildType} --architecture android --subtask aab --path \"${workspaceFolder}\""
+			},
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "iOS: Install",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task build --type ${input:iOSBuildType} --architecture ios --install --interactive --orientation landscape --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:iOSBuildType} --architecture ios --install --interactive --orientation landscape --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:iOSBuildType} --architecture ios --install --interactive --orientation landscape --path \"${workspaceFolder}\""
+			},
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "iOS: Build",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task build --type ${input:iOSBuildType} --architecture ios --interactive --orientation landscape --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:iOSBuildType} --architecture ios --interactive --orientation landscape --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type ${input:iOSBuildType} --architecture ios --interactive --orientation landscape --path \"${workspaceFolder}\""
+			},
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Android: Build Release AAB (Google Play)",
+			"type": "shell",
+			"windows": {
+				"command": "$sokolHome = Get-Content $env:USERPROFILE\\.sokolnet_config\\sokolnet_home; dotnet run --project \"$sokolHome\\tools\\SokolApplicationBuilder\\SokolApplicationBuilder.csproj\" -- --task build --type release --architecture android --subtask aab --path \"${workspaceFolder}\""
+			},
+			"linux": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type release --architecture android --subtask aab --path \"${workspaceFolder}\""
+			},
+			"osx": {
+				"command": "dotnet run --project \"$(cat ~/.sokolnet_config/sokolnet_home)/tools/SokolApplicationBuilder\" -- --task build --type release --architecture android --subtask aab --path \"${workspaceFolder}\""
+			},
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		}
+	],
+	"inputs": [
+		{
+			"id": "macOSArchitecture",
+			"type": "pickString",
+			"description": "Select an architecture to build",
+			"options": [
+				"osx-arm64",
+				"osx-x64"
+			]
+		},
+		{
+			"id": "androidBuildType",
+			"type": "pickString",
+			"description": "Select build type",
+			"options": [
+				"release",
+				"debug"
+			],
+			"default": "release"
+		},
+		{
+			"id": "iOSBuildType",
+			"type": "pickString",
+			"description": "Select build type",
+			"options": [
+				"release",
+				"debug"
+			],
+			"default": "release"
+		}
+	]
+}
