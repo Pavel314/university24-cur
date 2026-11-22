@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 't7_comp_graph/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 't7_comp_graph/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          path: proj
+
+      - name: Checkout Sokol.NET Framework
+        uses: actions/checkout@v4
+        with:
+          repository: Pavel314/Sokol.NET
+          path: Sokol.NET
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Register Sokol.NET
+        run: cd Sokol.NET && chmod +x register.sh && ./register.sh
+
+      - name: Removal of unnecessary files
+        run: cd proj/t7_comp_graph && find . -maxdepth 1 -type f \( -name "*.sln" -o -name "*.csproj" \) ! -name "*Web.csproj" -delete
+
+      - name: Install required .NET workloads
+        run: cd proj/t7_comp_graph && dotnet workload restore
+
+      - name: Prepare shaders
+        run: cd Sokol.NET && dotnet run --project tools/SokolApplicationBuilder -- --task prepare --architecture web --path "../proj/t7_comp_graph"
+
+      - name: Compiling .NET Web Assembly
+        run: |
+          cd proj/t7_comp_graph
+          dotnet publish -c Release -r browser-wasm --self-contained
+
+      - name: Deploy to Pavel314.github.io/vector_editor
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          external_repository: Pavel314/Pavel314.github.io
+          publish_branch: master
+          publish_dir: ./proj/t7_comp_graph/bin/Release/net10.0/browser-wasm/AppBundle
+          destination_dir: vector_editor
+          enable_jekyll: false
